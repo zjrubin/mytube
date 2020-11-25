@@ -50,27 +50,32 @@ def handle_collection(collection_config: dict):
 
 def download_video(url: str, directory: str, name: str = None):
     file_extension = "mp4"
-    video = YouTube(url)
-
-    # Use highest resolution mp4 stream
-    stream = video.streams.filter(
-        file_extension=file_extension
-    ).get_highest_resolution()
-
+    video = None
+    stream = None
     if name:
-        filename = name
-        file_path = f"{os.path.join(directory, filename)}.{file_extension}"
+        file_path = f"{os.path.join(directory, name)}.{file_extension}"
     else:
-        filename = stream.default_filename  # File extension already present
-        file_path = os.path.join(directory, filename)
+        # Use highest resolution mp4 stream
+        video = YouTube(url)
+        stream = video.streams.filter(
+            file_extension=file_extension
+        ).get_highest_resolution()
+        file_path = os.path.join(directory, stream.default_filename)
 
     # Check if the video file already exists.
     if os.path.exists(file_path):
-        print(Fore.GREEN + f"{filename} already exists! Skipping..." + Fore.RESET)
+        print(Fore.GREEN + f"{file_path} already exists! Skipping..." + Fore.RESET)
         return
 
+    # If stream hasn't already been fetched, get it now
+    video = video or YouTube(url)
+    stream = (
+        stream
+        or video.streams.filter(file_extension=file_extension).get_highest_resolution()
+    )
+
     # Register progress callbacks
-    pc = ProgressCheck(filename=filename, file_size=stream.filesize)
+    pc = ProgressCheck(file_path=file_path, file_size=stream.filesize)
     video.register_on_progress_callback(pc.on_progress)
     video.register_on_complete_callback(pc.on_complete)
 
@@ -82,12 +87,12 @@ def download_video(url: str, directory: str, name: str = None):
 
 
 class ProgressCheck:
-    def __init__(self, filename, file_size):
-        self.filename = filename
+    def __init__(self, file_path, file_size):
+        self.file_path = file_path
         self.file_size = file_size
         self.percent_complete = 0
 
-        print(Fore.YELLOW + f"{self.filename} - beginning download..." + Fore.RESET)
+        print(Fore.YELLOW + f"{self.file_path} - beginning download..." + Fore.RESET)
 
     def on_progress(self, stream, chunk, bytes_remaining):
         # Gets the percentage of the file that has been downloaded.
@@ -98,12 +103,12 @@ class ProgressCheck:
             return
 
         if new_percent_complete in (10, 20, 30, 40, 50, 60, 70, 80, 90):
-            print(f"{self.filename} - {new_percent_complete:00.0f}% downloaded")
+            print(f"{self.file_path} - {new_percent_complete:00.0f}% downloaded")
 
         self.percent_complete = new_percent_complete
 
     def on_complete(self, stream, file_path):
-        print(Fore.GREEN + f"{self.filename} - finished downloading!" + Fore.RESET)
+        print(Fore.GREEN + f"{self.file_path} - finished downloading!" + Fore.RESET)
 
 
 if __name__ == "__main__":
