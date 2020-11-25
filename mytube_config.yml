@@ -1,14 +1,18 @@
 ---
-video:
+- video:
   name: "arduino_real_time_clock_using_the_tiny_RTC" # If not present, will use default video name
   url: https://www.youtube.com/watch?v=lyvoOEO-Ncg
   dir: /tmp/videos
 
+- video:
+  url: https://www.youtube.com/watch?v=_gB37fsuvQY
+  dir: /tmp/videos
+
 # OR
 
-collection:
+- collection:
   dir: ~/Videos
   videos:
     - video:
-        # name: "my_video_name" # If not present, will use default video name
-        url: https://www.youtube.com/watch?v=Hg6L_7qLIEQ
+      # name: "my_video_name" # If not present, will use default video name
+      url: https://www.youtube.com/watch?v=Hg6L_7qLIEQ
